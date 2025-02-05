@@ -6,7 +6,7 @@ Project title: *[Colouring Black Boxes – Visualization of Decision Making of A
 ### Student email: *[jwk15@student.le.ac.uk]*
 
 ### Project description: 
-*[Add your project description here, these will typically be around 100-150 words long]*
+*I need to finalize on my project plan before I create the description*
 
 ### List of requirements (objectives): 
 
