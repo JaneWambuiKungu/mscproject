@@ -13,7 +13,7 @@ Project title: *[Colouring Black Boxes – Visualization of Decision Making of A
 [comment]: # (You can add as many additional bullet points as necessary by adding an additional hyphon symbol '-' at the end of each list) 
 
 Essential:
-- [Essential requirement 1]
+- 
 - [Essential requirement 2]
 - [Essential requirement 3]
 - [Essential requirement *n*]
