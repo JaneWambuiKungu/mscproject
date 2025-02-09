@@ -20,7 +20,7 @@ Essential:
 
 Desirable:
 - [Desirable requirement 1]
-- [Desirable requirement 2]
+  
 - [Desirable requirement 3]
 - [Desirable requirement *n*]
 
