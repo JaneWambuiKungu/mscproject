@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Student Loan Approval</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>AI Student Loan Approval System</h1>
+        <form action="/" method="POST">
+            <label for="income">Income (£):</label>
+            <input type="number" id="income" name="income" required>
+
+            <label for="credit_score">Credit Score:</label>
+            <input type="number" id="credit_score" name="credit_score" min="300" max="850" required>
+
+            <label for="academic_performance">Academic Performance (%):</label>
+            <input type="number" id="academic_performance" name="academic_performance" min="0" max="100" required>
+
+            <button type="submit">Check Loan Eligibility</button>
+        </form>
+
+        {% if result %}
+            <div class="result">
+                <h2>Result:</h2>
+                <p>{{ result|safe }}</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
