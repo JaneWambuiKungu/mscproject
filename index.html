@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Loan Predictor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* Your CSS styles (same as before) */
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #818cf8;
+      --primary-dark: #4338ca;
+      --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --error: #ef4444;
+      --error-light: #fee2e2;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(79, 70, 229, 0.03) 0%, rgba(124, 58, 237, 0.02) 50%, rgba(255, 255, 255, 0) 70%);
+      z-index: -1;
+    }
+    .shape { position: fixed; z-index: -1; opacity: 0.6; }
+    .shape-1 {
+      top: 10%;
+      left: 5%;
+      width: 300px;
+      height: 300px;
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+      animation: morph 15s linear infinite alternate;
+    }
+    .shape-2 {
+      bottom: 10%;
+      right: 5%;
+      width: 250px;
+      height: 250px;
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+      animation: morph 18s linear infinite alternate-reverse;
+    }
+    @keyframes morph {
+      0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+      25% { border-radius: 50% 50% 30% 70% / 60% 40% 60% 40%; }
+      50% { border-radius: 70% 30% 50% 50% / 40% 60% 40% 60%; }
+      75% { border-radius: 40% 60% 70% 30% / 30% 70% 30% 70%; }
+      100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      margin-bottom: 2rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-xl); }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: var(--primary-gradient);
+    }
+    .card-header {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+      transform: rotate(30deg);
+    }
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z' fill='%23ffffff' opacity='1'%3E%3C/path%3E%3C/svg%3E");
+      background-size: cover;
+      z-index: 1;
+    }
+    .card-header h1 {
+      font-size: 1.8rem;
+      margin: 0;
+      position: relative;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .card-header p {
+      margin-top: 0.5rem;
+      opacity: 0.9;
+      font-size: 1rem;
+      position: relative;
+    }
+    .card-body { padding: 2rem; position: relative; }
+    .card-decoration {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+      z-index: 0;
+    }
+    .decoration-1 { top: -75px; right: -75px; }
+    .decoration-2 { bottom: -75px; left: -75px; }
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: 0.95rem;
+      transition: color 0.3s ease;
+    }
+    .form-group:focus-within label { color: var(--primary); }
+    .input-wrapper { position: relative; }
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-700);
+      transition: all 0.3s ease;
+    }
+    .input-wrapper:focus-within .input-icon {
+      color: var(--primary);
+      transform: translateY(-50%) scale(1.1);
+    }
+    .input-status {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--success);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    .input-valid .input-status { opacity: 1; }
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background-color: var(--gray-100);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+      background-color: white;
+    }
+    .input-help {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--gray-700);
+      transition: color 0.3s ease;
+    }
+    .form-group:focus-within .input-help { color: var(--primary); }
+    .progress-container {
+      height: 6px;
+      background-color: var(--gray-200);
+      border-radius: 3px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: var(--primary-gradient);
+      transition: width 0.3s ease;
+    }
+    button {
+      width: 100%;
+      padding: 0.875rem;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.6s ease;
+    }
+    button:hover::before { left: 100%; }
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(79, 70, 229, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4);
+    }
+    .results {
+      display: none;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .results-header h2 {
+      font-size: 1.5rem;
+      color: var(--gray-800);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .results-header h2 i { color: var(--primary); }
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .result-item {
+      background-color: var(--gray-50);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 2px solid var(--gray-200);
+      position: relative;
+      overflow: hidden;
+    }
+    .result-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+      z-index: 0;
+    }
+    .result-item:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: var(--shadow);
+      border-color: var(--primary-light);
+    }
+    .result-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+      position: relative;
+      z-index: 1;
+    }
+    .result-label {
+      font-size: 1rem;
+      color: var(--gray-700);
+      margin-bottom: 0.75rem;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .result-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s ease;
+    }
+    .status-approved { color: var(--success); }
+    .status-approved-bg { background-color: var(--success-light); border-color: var(--success); }
+    .status-rejected { color: var(--error); }
+    .status-rejected-bg { background-color: var(--error-light); border-color: var(--error); }
+    .chart-container {
+      margin-top: 2rem;
+      height: 300px;
+      border-radius: 12px;
+      padding: 1.5rem;
+      background-color: white;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-200);
+      position: relative;
+      overflow: hidden;
+    }
+    .chart-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+      z-index: 0;
+    }
+    .chart-title {
+      font-size: 1.1rem;
+      color: var(--gray-700);
+      margin-bottom: 1rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+    }
+    .spinner-container {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+    }
+    .spinner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 4px solid rgba(79, 70, 229, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+    .spinner-inner {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 50px;
+      height: 50px;
+      border: 4px solid transparent;
+      border-radius: 50%;
+      border-top-color: var(--primary-light);
+      animation: spin 1.8s cubic-bezier(0.5, 0, 0.5, 1) infinite reverse;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      margin-top: 1rem;
+      color: var(--gray-700);
+      font-size: 1.1rem;
+    }
+    .loading-progress {
+      width: 200px;
+      height: 6px;
+      background-color: var(--gray-200);
+      border-radius: 3px;
+      margin: 1rem auto 0;
+      overflow: hidden;
+    }
+    .loading-progress-bar {
+      height: 100%;
+      width: 0;
+      background: var(--primary-gradient);
+      animation: progress 2s ease-in-out infinite;
+    }
+    @keyframes progress { 0% { width: 0; } 50% { width: 70%; } 100% { width: 100%; } }
+    .reset-btn {
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      box-shadow: none;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+    }
+    .reset-btn:hover {
+      background-color: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(79, 70, 229, 0.2);
+    }
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      color: var(--gray-700);
+      font-size: 0.875rem;
+      padding: 1rem;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-200);
+    }
+    .confetti-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+      display: none;
+    }
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #f00;
+      opacity: 0;
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 200px;
+      background-color: var(--gray-800);
+      color: white;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.85rem;
+      box-shadow: var(--shadow);
+    }
+    .tooltip .tooltip-text::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--gray-800) transparent transparent transparent;
+    }
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    @media (max-width: 768px) {
+      .card-header { padding: 1.25rem; }
+      .card-body { padding: 1.5rem; }
+      .results-grid { grid-template-columns: 1fr; }
+      .shape-1, .shape-2 { display: none; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+  </style>
+</head>
+<body>
+  <div class="shape shape-1"></div>
+  <div class="shape shape-2"></div>
+  <div class="confetti-container" id="confettiContainer"></div>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h1><i class="fas fa-university"></i> Student Loan Predictor</h1>
+        <p>Enter your info to see if you're loan-worthy 🤑</p>
+      </div>
+      <div class="card-body">
+        <div class="card-decoration decoration-1"></div>
+        <div class="card-decoration decoration-2"></div>
+        <div class="progress-container">
+          <div class="progress-bar" id="formProgress"></div>
+        </div>
+        <form id="predictionForm">
+          <div class="form-group">
+            <label for="income">Annual Income ($)</label>
+            <div class="input-wrapper">
+              <i class="input-icon fas fa-dollar-sign"></i>
+              <input type="number" id="income" min="0" required placeholder="Enter your annual income">
+              <i class="input-status fas fa-check-circle"></i>
+            </div>
+            <span class="input-help">Your gross annual income before taxes 💸</span>
+          </div>
+          <div class="form-group">
+            <label for="credit_score">Credit Score</label>
+            <div class="input-wrapper">
+              <i class="input-icon fas fa-chart-line"></i>
+              <input type="number" id="credit_score" min="300" max="850" required placeholder="Enter your credit score (300-850)">
+              <i class="input-status fas fa-check-circle"></i>
+            </div>
+            <span class="input-help">Your FICO credit score (typically between 300-850) 📊</span>
+          </div>
+          <div class="form-group">
+            <label for="gpa">GPA</label>
+            <div class="input-wrapper">
+              <i class="input-icon fas fa-graduation-cap"></i>
+              <input type="number" id="gpa" min="0" max="4" step="0.01" required placeholder="Enter your GPA (0.0-4.0)">
+              <i class="input-status fas fa-check-circle"></i>
+            </div>
+            <span class="input-help">Your cumulative GPA on a 4.0 scale 🎓</span>
+          </div>
+          <button type="submit" id="submitBtn">
+            <i class="fas fa-search"></i> Check Loan Eligibility
+          </button>
+        </form>
+        <div class="loading" id="loadingIndicator">
+          <div class="spinner-container">
+            <div class="spinner"></div>
+            <div class="spinner-inner"></div>
+          </div>
+          <p class="loading-text">Analyzing your information... 🤔</p>
+          <div class="loading-progress">
+            <div class="loading-progress-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card results" id="resultsSection">
+      <div class="card-body">
+        <div class="results-header">
+          <h2><i class="fas fa-clipboard-check"></i> Loan Eligibility Results</h2>
+          <button class="reset-btn" id="resetBtn">
+            <i class="fas fa-redo"></i> Try Again
+          </button>
+        </div>
+        <div class="results-grid">
+          <div class="result-item" id="decisionTreeItem">
+            <div class="result-icon"><i class="fas fa-tree"></i></div>
+            <div class="result-label">
+              Decision Tree Model
+              <span class="tooltip">
+                <i class="fas fa-info-circle"></i>
+                <span class="tooltip-text">This model makes decisions based on a tree-like structure of conditions 🌳</span>
+              </span>
+            </div>
+            <div class="result-value" id="decisionTreeResult">-</div>
+          </div>
+          <div class="result-item" id="logisticRegressionItem">
+            <div class="result-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="result-label">
+              Logistic Regression Model
+              <span class="tooltip">
+                <i class="fas fa-info-circle"></i>
+                <span class="tooltip-text">This model uses statistical analysis to predict outcomes based on multiple factors 📈</span>
+              </span>
+            </div>
+            <div class="result-value" id="logisticRegressionResult">-</div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <div class="chart-title">Approval Probability Comparison</div>
+          <canvas id="resultsChart"></canvas>
+        </div>
+        <div id="visualizations" style="margin-top: 2rem;">
+          <div class="result-item">
+            <h3>SHAP Visualization</h3>
+            <img id="shapVisualization" src="" alt="SHAP Visualization" style="max-width: 100%;" />
+          </div>
+          <div class="result-item">
+            <h3>LIME Visualization</h3>
+            <iframe id="limeVisualization" src="" style="width: 100%; height: 400px; border: none;"></iframe>
+          </div>
+          <div class="result-item">
+            <h3>ROC Curve (Performance Metric)</h3>
+            <img id="rocCurveVisualization" src="" alt="ROC Curve" style="max-width: 100%;" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <p><i class="fas fa-info-circle"></i> This tool provides an estimate based on machine learning models and should not be considered a guarantee of loan approval. Use at your own risk! 🚨</p>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const form = document.getElementById('predictionForm');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const resultsSection = document.getElementById('resultsSection');
+    const decisionTreeResult = document.getElementById('decisionTreeResult');
+    const logisticRegressionResult = document.getElementById('logisticRegressionResult');
+    const decisionTreeItem = document.getElementById('decisionTreeItem');
+    const logisticRegressionItem = document.getElementById('logisticRegressionItem');
+    const resetBtn = document.getElementById('resetBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const formProgress = document.getElementById('formProgress');
+    const confettiContainer = document.getElementById('confettiContainer');
+    const incomeInput = document.getElementById('income');
+    const creditScoreInput = document.getElementById('credit_score');
+    const gpaInput = document.getElementById('gpa');
+    const inputs = [incomeInput, creditScoreInput, gpaInput];
+
+    function updateFormProgress() {
+      let validCount = 0;
+      inputs.forEach(input => {
+        const wrapper = input.parentElement;
+        if (input.value && input.checkValidity()) {
+          validCount++;
+          wrapper.classList.add('input-valid');
+        } else {
+          wrapper.classList.remove('input-valid');
+        }
+      });
+      const progressPercentage = (validCount / inputs.length) * 100;
+      formProgress.style.width = `${progressPercentage}%`;
+      return validCount === inputs.length;
+    }
+
+    inputs.forEach(input => { input.addEventListener('input', updateFormProgress); });
+
+    function createConfetti() {
+      confettiContainer.innerHTML = '';
+      confettiContainer.style.display = 'block';
+      const colors = ['#4f46e5', '#7c3aed', '#10b981', '#3b82f6', '#f59e0b'];
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.width = Math.random() * 10 + 5 + 'px';
+        confetti.style.height = Math.random() * 10 + 5 + 'px';
+        confetti.style.opacity = Math.random();
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        confetti.animate([
+          { transform: `translate(0, 0) rotate(0deg)`, opacity: 1 },
+          { transform: `translate(${Math.random() * 100 - 50}px, ${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+        ], { duration: Math.random() * 3000 + 2000, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)' });
+        confettiContainer.appendChild(confetti);
+      }
+      setTimeout(() => { confettiContainer.style.display = 'none'; }, 5000);
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!updateFormProgress()) {
+        form.classList.add('shake');
+        setTimeout(() => form.classList.remove('shake'), 500);
+        return;
+      }
+      form.style.display = 'none';
+      loadingIndicator.style.display = 'block';
+      const formData = {
+        income: parseFloat(incomeInput.value),
+        credit_score: parseInt(creditScoreInput.value),
+        gpa: parseFloat(gpaInput.value)
+      };
+      // Call /predict endpoint
+      fetch('/predict', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        const dtApproved = data.decision_tree_prediction === 1;
+        const lrApproved = data.logistic_regression_prediction === 1;
+        decisionTreeResult.textContent = dtApproved ? "Approved" : "Rejected";
+        decisionTreeResult.className = "result-value " + (dtApproved ? "status-approved" : "status-rejected");
+        decisionTreeItem.className = "result-item " + (dtApproved ? "status-approved-bg" : "status-rejected-bg");
+        logisticRegressionResult.textContent = lrApproved ? "Approved" : "Rejected";
+        logisticRegressionResult.className = "result-value " + (lrApproved ? "status-approved" : "status-rejected");
+        logisticRegressionItem.className = "result-item " + (lrApproved ? "status-approved-bg" : "status-rejected-bg");
+        initializeChart(data.decision_tree_prediction, data.logistic_regression_prediction);
+      })
+      .catch(error => { console.error("Error in /predict:", error); });
+      
+      // Call /generate_visualizations endpoint
+      fetch('/generate_visualizations', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('shapVisualization').src = data.shap_plot;
+        document.getElementById('limeVisualization').src = data.lime_plot;
+        document.getElementById('rocCurveVisualization').src = data.roc_curve;
+        loadingIndicator.style.display = 'none';
+        resultsSection.style.display = 'block';
+        if (data.decision_tree_prediction === 1 && data.logistic_regression_prediction === 1) {
+          createConfetti();
+        }
+      })
+      .catch(error => {
+        console.error("Error in /generate_visualizations:", error);
+        loadingIndicator.style.display = 'none';
+        form.style.display = 'block';
+      });
+    });
+
+    resetBtn.addEventListener('click', function() {
+      form.reset();
+      resultsSection.style.display = 'none';
+      form.style.display = 'block';
+      updateFormProgress();
+    });
+
+    function initializeChart(dtResult, lrResult) {
+      const ctx = document.getElementById('resultsChart').getContext('2d');
+      const dtPercentage = dtResult === 1 ? 100 : 0;
+      const lrPercentage = lrResult === 1 ? 100 : 0;
+      if (window.resultsChart && typeof window.resultsChart.destroy === 'function') {
+        window.resultsChart.destroy();
+      }
+      const dtGradient = ctx.createLinearGradient(0, 0, 0, 400);
+      dtGradient.addColorStop(0, dtPercentage === 100 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)');
+      dtGradient.addColorStop(1, dtPercentage === 100 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)');
+      const lrGradient = ctx.createLinearGradient(0, 0, 0, 400);
+      lrGradient.addColorStop(0, lrPercentage === 100 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)');
+      lrGradient.addColorStop(1, lrPercentage === 100 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)');
+      window.resultsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Decision Tree', 'Logistic Regression'],
+          datasets: [{
+            label: 'Approval Probability (%)',
+            data: [dtPercentage, lrPercentage],
+            backgroundColor: [dtGradient, lrGradient],
+            borderWidth: 0,
+            borderRadius: 10,
+            maxBarThickness: 80
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 2000, easing: 'easeOutQuart' },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { callback: value => value + '%' },
+              title: { display: true, text: 'Approval Probability', font: { size: 14, weight: 'bold' }, padding: { top: 10, bottom: 10 } }
+            },
+            x: { grid: { display: false }, ticks: { font: { size: 12, weight: 'bold' } } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: { size: 14, weight: 'bold' },
+              bodyFont: { size: 13 },
+              callbacks: { label: context => context.raw === 100 ? 'Approved (100%)' : 'Rejected (0%)' }
+            }
+          }
+        }
+      });
+    }
+
+    updateFormProgress();
+  </script>
+</body>
+</html>
